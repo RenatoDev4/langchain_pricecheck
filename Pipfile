@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pyautogen = "*"
+openai = "*"
+langchain = "*"
+chromadb = "*"
+sentence-transformers = "*"
+black = "*"
+google-search-results = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
