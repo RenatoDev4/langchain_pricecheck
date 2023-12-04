@@ -6,7 +6,7 @@ from langchain.chat_models import ChatOpenAI
 
 from googleshopping_search import process_search
 
-os.environ["OPENAI_API_KEY"] = "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"
+os.environ["OPENAI_API_KEY"] = ""
 
 
 def lookup(object: str) -> str:
