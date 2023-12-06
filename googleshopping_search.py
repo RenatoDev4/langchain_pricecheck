@@ -1,7 +1,15 @@
 import json
+import os
 import re
+from typing import Dict, List
+from unicodedata import normalize
 
+from dotenv import load_dotenv
 from serpapi import GoogleSearch
+
+load_dotenv()
+
+api_key_serpapi = os.getenv("SERPAPI_KEY")
 
 
 def search_object(product_name: str) -> str:
@@ -22,13 +30,18 @@ def search_object(product_name: str) -> str:
         "hl": "pt",
         "gl": "br",
         "device": "desktop",
-        "num": "30",
+        # "num": "27",
         "google_domain": "google.com.br",
-        "api_key": "3aec8378ee805935c1e0d4d99f0118828199bd33f85289ed93aae40c31f8de5c",
+        "api_key": api_key_serpapi,
+        "tbs": "mr:1,merchagg:g227476643%7Cm106916823|m7139546|g100469737%7Cm100713375|g134886126%7Cm134880504%7Cm134942054|g264499098%7Cm276949139%7Cm8231017|m482593868|m11172672|m143590035|m114573998|g227476643%7Cm106916823|",  # noqa
     }
 
     search = GoogleSearch(params)
     results = search.get_dict()
+
+    if "shopping_results" not in results:
+        raise ValueError("No results found in search")
+
     shopping_results = results["shopping_results"]
 
     extracted_results = []
@@ -46,9 +59,10 @@ def search_object(product_name: str) -> str:
     return json_result
 
 
-def clean_text(text):
+def clean_text(text: str) -> str:
     """
-    Cleans the given text by removing any characters that are not alphanumeric, whitespace, comma, period, or semicolon.
+    Cleans the given text by removing any characters that are not alphanumeric,
+    whitespace, comma, period, semicolon, or common symbols in PT-BR.
 
     Parameters:
         text (str): The text to be cleaned.
@@ -56,41 +70,59 @@ def clean_text(text):
     Returns:
         str: The cleaned text.
     """
-    cleaned_text = re.sub(r'[^a-zA-Z0-9\s.,;]', '', text)
+    url_regex = r"https?://\S+|www\.\S+"
+
+    cleaned_text = re.sub(
+        rf"[^a-zA-Z0-9\s.,;áàâãéèêíìîóòôõúùûç]|({url_regex})",
+        lambda match: match.group(1) if match.group(1) else "",
+        normalize("NFD", text),
+    )
+
     return cleaned_text
 
 
-def extract_data(product_list):
+def extract_data(
+    product_list: List[Dict[str, str]], target_product: str
+) -> List[Dict[str, str]]:  # noqa
     """
-    Extracts data from a given list of products.
+    Extracts data from a given list of products without cleaning the text.
 
     Parameters:
-        - product_list (list): A list of dictionaries representing the products. Each dictionary should have the following keys:
+        - product_list (list): A list of dictionaries representing the products. Each dictionary should have the following keys: # noqa
             - "title" (str): The title of the product.
             - "link" (str): The link to the product.
             - "extracted_price" (str): The extracted price of the product.
 
     Returns:
-        list: A list of dictionaries representing the cleaned results. Each dictionary will have the following keys:
-            - "Titulo" (str): The cleaned title of the product.
-            - "Link" (str): The cleaned link to the product.
-            - "Preço" (str): The cleaned price of the product.
+        list: A list of dictionaries representing the uncleaned results. Each dictionary will have the following keys:
+            - "Title" (str): The uncleaned title of the product.
+            - "Link" (str): The uncleaned link to the product.
+            - "Preço" (str): The uncleaned price of the product.
     """
-    cleaned_results = []
+
+    filtered_results = []
 
     for item in product_list:
-        cleaned_entry = {
-            "Titulo": clean_text(item.get("title", "")),
-            "Link": clean_text(item.get("link", "")),
-            "Preço": clean_text(str(item.get("extracted_price", ""))),
-        }
-        cleaned_results.append(cleaned_entry)
+        if target_product.lower() in item.get("title", "").lower():
+            filtered_results.append(
+                {
+                    "Title": item.get("title", ""),
+                    "Url": item.get("link", ""),
+                    "Price": float(str(item.get("extracted_price", "0"))),
+                }
+            )
 
-    return cleaned_results
+    if not filtered_results:
+        return []
 
-def process_search(product_name):
+    min_price_item = min(filtered_results, key=lambda x: x["Price"])
+
+    return [min_price_item]
+
+
+def process_search(product_name: str) -> None:
     """
-    Retrieves search results for a given product name, processes the results, and prints the relevant information.
+    Retrieves search results for a given product name, processes the results, and prints the relevant information. # noqa
 
     Parameters:
     - product_name (str): The name of the product to search for.
@@ -104,9 +136,6 @@ def process_search(product_name):
     """
     json_result = search_object(product_name)
     result_list = json.loads(json_result)
-    cleaned_result = extract_data(result_list)
+    cleaned_result = extract_data(result_list, product_name)
 
-    for entry in cleaned_result:
-        print(f"Titulo: {entry['Titulo']}")
-        print(f"Link: {entry['Link']}")
-        print(f"Preço: R$ {entry['Preço']}")
+    return cleaned_result  # type: ignore

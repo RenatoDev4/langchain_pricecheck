@@ -11,6 +11,9 @@ chromadb = "*"
 sentence-transformers = "*"
 black = "*"
 google-search-results = "*"
+streamlit = "*"
+streamlit-chat = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
