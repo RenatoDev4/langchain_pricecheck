@@ -1,5 +1,7 @@
 # Projeto Busca de Melhores Preços
 
+Link do aplicativo : https://langchainpricecheck.streamlit.app/
+
 ## Descrição
 
 Este é um projeto que busca os melhores preços de um produto escolhido pelo usuário. A aplicação utiliza a API do Google para realizar a busca e um modelo de linguagem da OpenAI para analisar os resultados. O usuário recebe uma resposta contendo o menor preço encontrado e um link direto para o produto.
