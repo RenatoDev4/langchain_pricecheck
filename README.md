@@ -37,8 +37,19 @@ Este é um projeto que busca os melhores preços de um produto escolhido pelo us
 
 ## Configuração
 
-Configure as credenciais da API do Google e da OpenAI como uma váriavel de ambiente, como por exemplo em um arquivo .env
-   
+1. **Váriaveis de ambiente:**
+
    ```bash
    OPENAI_API_KEY="SuaChaveAqui"
    SERPAPI_KEY="SuaChaveAqui"
+
+Configure as credenciais da API do Google e da OpenAI como uma váriavel de ambiente, como por exemplo em um arquivo .env
+
+
+## Contribuições
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue para discutir novas funcionalidades, relatar bugs ou enviar um pull request.
+
+## Licença
+
+Este projeto está licenciado sob a **Licença MIT.**
